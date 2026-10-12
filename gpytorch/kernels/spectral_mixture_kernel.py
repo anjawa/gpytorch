@@ -8,7 +8,7 @@ import warnings
 
 import torch
 
-from ..constraints import Interval, Positive
+from ..constraints import GreaterThan, Interval, Positive
 from ..priors import Prior
 from .kernel import Kernel
 
@@ -116,7 +116,11 @@ class SpectralMixtureKernel(Kernel):
             mixture_scales_constraint = Positive()
 
         if mixture_means_constraint is None:
-            mixture_means_constraint = Positive()
+            if correct_multidimensional_mixture:
+                # Any real frequency vector is valid
+                mixture_means_constraint = GreaterThan(-math.inf, transform=None)
+            else:
+                mixture_means_constraint = Positive()
 
         if mixture_weights_constraint is None:
             mixture_weights_constraint = Positive()
@@ -125,7 +129,10 @@ class SpectralMixtureKernel(Kernel):
             name="raw_mixture_weights", parameter=torch.nn.Parameter(torch.zeros(*self.batch_shape, self.num_mixtures))
         )
         ms_shape = torch.Size([*self.batch_shape, self.num_mixtures, 1, self.ard_num_dims])
-        self.register_parameter(name="raw_mixture_means", parameter=torch.nn.Parameter(torch.zeros(ms_shape)))
+
+        # Start at log(2) because unconstrained means get zero gradient at 0
+        raw_means_init = torch.full(ms_shape, math.log(2) if correct_multidimensional_mixture else 0.0)
+        self.register_parameter(name="raw_mixture_means", parameter=torch.nn.Parameter(raw_means_init))
         self.register_parameter(name="raw_mixture_scales", parameter=torch.nn.Parameter(torch.zeros(ms_shape)))
 
         self.register_constraint("raw_mixture_scales", mixture_scales_constraint)
