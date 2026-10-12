@@ -40,7 +40,7 @@ class SpectralMixtureKernel(Kernel):
 
     :param correct_multidimensional_mixture: If True, use the corrected multidimensional
         formula from `Correction to Spectral Mixture (SM) Kernel Derivation for Multidimensional Inputs`_.
-        If False (default), use the product-of-1D-kernels formula as shown in the original paper
+        If False (default), use the product of 1D spectral mixture kernels
         (deprecated for ard_num_dims > 1).
     :type correct_multidimensional_mixture: bool, optional
     :param mixture_scales_prior: A prior to set on the mixture_scales parameter
@@ -49,7 +49,8 @@ class SpectralMixtureKernel(Kernel):
     :type mixture_scales_constraint: ~gpytorch.constraints.Interval, optional
     :param mixture_means_prior: A prior to set on the mixture_means parameter
     :type mixture_means_prior: ~gpytorch.priors.Prior, optional
-    :param mixture_means_constraint: A constraint to set on the mixture_means parameter
+    :param mixture_means_constraint: A constraint to set on the mixture_means parameter.
+        (Default: `Positive()` if `correct_multidimensional_mixture=False`, otherwise unconstrained.)
     :type mixture_means_constraint: ~gpytorch.constraints.Interval, optional
     :param mixture_weights_prior: A prior to set on the mixture_weights parameter
     :type mixture_weights_prior: ~gpytorch.priors.Prior, optional
